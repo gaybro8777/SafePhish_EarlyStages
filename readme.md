@@ -1,5 +1,5 @@
-#DataBreach
-DataBreach is a custom built web interface to allow businesses to test their employees for awareness of phishing scams.
+#SafePhish
+SafePhish is a custom built web interface to allow businesses to test their employees for awareness of phishing scams.
 
 ###Development Notes
 
