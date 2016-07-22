@@ -28,6 +28,10 @@ class User_test
 
     private $date;
 
+    /**
+     * User_test constructor.
+     * @param $user
+     */
     public function __construct($user)
     {
         $this->id = $user['USR_UserId']; //required
@@ -42,6 +46,12 @@ class User_test
         $this->lastProject = $user['USR_ProjectLast'];
     }
 
+    /**
+     * checkURLId
+     * Checks if UniqueURLId is null and sets it if it is.
+     *
+     * @param   int         $projectId          Integer ID referencing specific project to be concatenated onto the URLId
+     */
     private function checkURLId($projectId) {
         if(is_null($this->uniqueURLId)) {
             $db = new DBManager();
