@@ -3,7 +3,7 @@ DataBreach is a custom built web interface to allow businesses to test their emp
 
 ###Development Notes
 
-Utilizes Laravel 5.2 PHP Framework <br />
+Utilizes Laravel PHP Framework <br />
 Utilizes the centralized controller `PhishingController.php`, to execute routes and processes. <br />
 
 #####Classes
