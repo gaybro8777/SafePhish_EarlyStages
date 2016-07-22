@@ -1,0 +1,25 @@
+#templateContentDiv {
+    margin-top: 75px;
+    margin-right: 20px;
+    height: 400px;
+    width: 38%;
+    float: right;
+}
+
+form {
+    display: block;
+    margin-left: 20px;
+    width: 60%;
+}
+
+p {
+    display: inline;
+}
+
+label {
+    width: 118px;
+}
+
+input {
+    width: 200px;
+}

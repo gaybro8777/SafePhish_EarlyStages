@@ -1,0 +1,8 @@
+#errorsDiv p {
+    color: #CC0000;
+    -webkit-border-radius: .5em;
+    -moz-border-radius: .5em;
+    border-radius: .5em;
+    padding: 5px 20px;
+    background-color: rgba(255,0,0,.3);
+}
