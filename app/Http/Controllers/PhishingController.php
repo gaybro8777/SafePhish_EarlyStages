@@ -5,18 +5,14 @@ use App\Email as Email;
 use app\EmailConfiguration;
 use app\Exceptions\ConfigurationException;
 use app\Exceptions\EmailException;
-use App\Exceptions\QueryException;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\PDOIterator;
 use app\TemplateConfiguration;
-use Doctrine\Instantiator\Exception\InvalidArgumentException;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Illuminate\Http\Request;
 use App\User;
-use PhpSpec\Exception\Example\FailureException;
-use Symfony\Component\Validator\Exception\OutOfBoundsException;
 
 class PhishingController extends Controller {
 
@@ -139,98 +135,6 @@ class PhishingController extends Controller {
 	{
 		//
 	}
-
-	/*private function random_str($length, $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-	{
-		$str = '';
-		$max = mb_strlen($keyspace, '8bit') - 1;
-		for ($i = 0; $i < $length; ++$i) {
-			$str .= $keyspace[random_int(0, $max)];
-		}
-		return $str;
-	}
-
-	public function sendEmail(Request $request) {
-		$fromEmail = $request['fromEmail'];
-		$fromPass = $request['fromPass'];
-		$host = $request['hostName'];
-		$port = $request['port'];
-		putenv("MAIL_HOST=$host");
-		putenv("MAIL_PORT=$port");
-		putenv("MAIL_USERNAME=$fromEmail");
-		putenv("MAIL_PASSWORD=$fromPass");
-
-		$subject = $request['subject'];
-		$projectName = $request['projectName'];
-		$projectId = substr($projectName,strpos($projectName,'_'));
-		$projectName = substr($projectName,0,strpos($projectName,'_')-1);
-		$companyName = $request['companyName'];
-		$emailTemplate = 'emails.' . $request['emailTemplate'];
-		$emailTemplateType = substr($request['emailTemplate'],0,3);
-		$emailTemplateTarget = substr($request['emailTemplate'],3,1);
-
-		$db = $this->openDatabaseDefault();
-		$sql = "SELECT * FROM gaig_users.users;";
-		if(!$result = $db->query($sql)) {
-			$this->databaseErrorLogging($sql,$db);
-			exit;
-		}
-		if($result->num_rows === 0) {
-			echo "Sorry. There are no users in this database.";
-			exit;
-		}
-		while($user = $result->fetch_assoc()) {
-			if($emailTemplateType != substr($user['USR_ProjectMostRecent'],-5,3) || $emailTemplateTarget != substr($user['USR_ProjectMostRecent'],-2,1)) {
-				$urlID = null;
-				if(!is_null($user['USR_UniqueURLId'])) {
-					$urlID = $user['USR_UniqueURLId'];
-				}
-				while(is_null($urlID)) {
-					$urlID = $this->random_str(15);
-					$sql = "SELECT * FROM gaig_users.users WHERE USR_UniqueURLId=$urlID;";
-					$tempResult = $db->query($sql);
-					//if($tempResult->num_rows === 0) {
-					//	break;
-					//}
-					//$urlID = null;
-				}
-				$username = $user['USR_Username'];
-				$toEmail = $user['USR_Email'];
-				$lastName = $user['USR_LastName'];
-				$firstName = $user['USR_FirstName'];
-				//$projectName = 'bscG6_9_16';
-				/*
-                 * NAMING FORMAT:
-                 * 1. bsc/adv : First three letters defines whether its basic or advanced scam
-                 * 2. G/T : This letter defines whether it's a generic scam or a targeted scam
-                 * 3. Project Start Date
-                 Closing comment here bracket
-				$headers = array('from' => $fromEmail, 'to' => $toEmail, 'subject' => $subject, 'lastName' => $lastName,
-					'urlID' => $urlID, 'username' => $username, 'projectName' => $projectName, 'companyName' => $companyName,
-					'firstName' => $firstName, 'projectId' => $projectId);
-				Mail::send(['html' => $emailTemplate],$headers, function($m) use ($fromEmail, $toEmail, $subject) {
-					$m->from($fromEmail);
-					$m->to($toEmail)->subject($subject);
-				});
-				if(!is_null($user['USR_UniqueURLId'])) {
-					$project_mostRecent = $user['USR_ProjectMostRecent'];
-					$project_previous = $user['USR_ProjectPrevious'];
-					$sql = "UPDATE gaig_users.users SET USR_ProjectMostRecent='$projectName-$emailTemplate', USR_ProjectPrevious='$project_mostRecent', USR_ProjectLast='$project_previous' WHERE USR_Username='$username';";
-					$updateResult = $db->query($sql);
-				}
-				else {
-					$sql = "UPDATE gaig_users.users SET USR_UniqueURLId='$urlID', USR_ProjectMostRecent='$projectName-$emailTemplate' WHERE USR_Username='$username';";
-					$updateResult = $db->query($sql);
-				}
-				echo "Mail sent to " . $toEmail;
-				echo "Unique URL ID generated: " . $urlID . "<br />";
-			} else {
-				echo "Mail not sent to " . $user['USR_Username'] . "@gaig.com";
-				echo "User's last project was " . $user['USR_ProjectMostRecent'] . "<br />";
-			}
-		}
-		$db->close();
-	}*/
 
 	/**
 	 * sendEmail
