@@ -10,9 +10,9 @@ use App\Http\Controllers\Controller;
 use App\PDOIterator;
 use app\TemplateConfiguration;
 use Symfony\Component\Config\Definition\Exception\Exception;
-use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Illuminate\Http\Request;
 use App\User;
+use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 class PhishingController extends Controller {
 
@@ -175,6 +175,12 @@ class PhishingController extends Controller {
 		}
 	}
 
+    /**
+     * generateEmailForm
+     * Generates the Send Email Request Form in the GUI.
+     *
+     * @return  \Illuminate\View\View
+     */
 	public function generateEmailForm() {
 		if($this->isUserAuth()) {
 			try {
@@ -204,6 +210,12 @@ class PhishingController extends Controller {
 		}
 	}
 
+    /**
+     * viewAllProjects
+     * Returns list of all project names for view in GUI.
+     *
+     * @return  \Illuminate\View\View
+     */
 	public function viewAllProjects() {
 		if($this->isUserAuth()) {
 			$projects = $this->returnAllProjects();
@@ -211,13 +223,19 @@ class PhishingController extends Controller {
 				$varToPass = array('projectSize'=>$projects[0],'data'=>$projects[1]);
 				return view('displays.showAllProjects')->with($varToPass);
 			}
-			//return error
+			//retry? otherwise redirect to user-friendly error view
 		} else {
 			\Session::put('loginRedirect',$_SERVER['REQUEST_URI']);
 			return view('auth.loginTest');
 		}
 	}
 
+    /**
+     * returnAllProjects
+     * Helper function that queries project info from database.
+     *
+     * @return  array
+     */
 	private function returnAllProjects() {
 		try {
 			$db = new DBManager();
@@ -236,12 +254,16 @@ class PhishingController extends Controller {
 			}
 			return array($projectSize,$data);
 		} catch(Exception $e) {
-            //caught exception already logged
-            //retry? otherwise redirect to user-friendly error view
+            return null;
         }
-		return null;
 	}
 
+    /**
+     * viewAllTemplates
+     * Returns list of all template names for view in GUI.
+     *
+     * @return  \Illuminate\View\View
+     */
 	public function viewAllTemplates() {
 		if($this->isUserAuth()) {
 			$templates = $this->returnAllTemplates();
@@ -264,6 +286,12 @@ class PhishingController extends Controller {
 		}
 	}
 
+    /**
+     * returnAllTemplates
+     * Helper function that queries template names from file structure.
+     *
+     * @return  array
+     */
 	private function returnAllTemplates() {
 		$files = [];
 		$fileNames = [];
@@ -278,7 +306,13 @@ class PhishingController extends Controller {
 		}
 		return array($templateSize,$fileNames);
 	}
-	
+
+    /**
+     * createNewProject
+     * Creates new project and inserts into database.
+     *
+     * @param   Request         $request        Data sent by user to instantiate new project
+     */
 	public function createNewProject(Request $request) {
 		try {
 			$db = new DBManager();
@@ -300,6 +334,12 @@ class PhishingController extends Controller {
         }
 	}
 
+    /**
+     * createNewTemplate
+     * Creates new template and writes it to the file structure.
+     *
+     * @param   Request         $request        Template name and content sent by user to create new template
+     */
 	public function createNewTemplate(Request $request) {
 		$path = '../resources/views/emails/';
 		$templateName = $request->input('templateName');
@@ -309,22 +349,37 @@ class PhishingController extends Controller {
 		\File::delete('../resources/views/emails/.blade.php');
 	}
 
+    /**
+     * htmlReturner
+     * Takes template name as input and returns content of template to be used as a preview in the GUI.
+     *
+     * @param   string      $id             Template Name
+     * @return  string                      Template Content
+     */
 	public function htmlReturner($id) {
-		$path = '../resources/views/emails/' . $id . '.blade.php';
+		$path = '../resources/views/emails/phishing/' . $id . '.blade.php';
 		$contents = '';
 		try {
 			$contents = \File::get($path);
 		}
-		catch (FileNotFoundException $fnfe) {
+		catch (FileNotFoundException $fnfe) { //change to generic exception
+		    //log exception
 			$contents = "Preview Unavailable";
 		}
 		return $contents;
 	}
 
+    /**
+     * updateDefaultEmailSettings
+     * Post function for updating Default Email Settings, which are used to autofill the Send Email Request Form
+     *
+     * @param   Request         $request            Settings sent from form
+     */
 	public function updateDefaultEmailSettings(Request $request) {
 		try {
 			$db = new DBManager();
 
+            //modify to use object access instead of array access
 			$username = $request['usernameText'];
 			$company = $request['companyText'];
 			$host = $request['mailServerText'];
@@ -351,6 +406,12 @@ class PhishingController extends Controller {
         }
 	}
 
+    /**
+     * generateDefaultEmailSettingsForm
+     * Generates the Settings form based on input from the database.
+     *
+     * @return  \Illuminate\Http\RedirectResponse|\Illuminate\View\View
+     */
 	public function generateDefaultEmailSettingsForm() {
 		if($this->isUserAuth()) {
 			try {
@@ -379,6 +440,13 @@ class PhishingController extends Controller {
 		}
 	}
 
+    /**
+     * queryDefaultEmailSettings
+     * Helper function to query database for settings.
+     *
+     * @param   int             $userId         User ID to query for settings.
+     * @return  \PDOStatement
+     */
 	private function queryDefaultEmailSettings($userId) {
 		$db = new DBManager();
 
@@ -388,6 +456,12 @@ class PhishingController extends Controller {
 		return $settingsExist;
 	}
 
+    /**
+     * postLogin
+     * 
+     * @param Request $request
+     * @return $this
+     */
 	public function postLogin(Request $request) {
 		try {
 			$db = new DBManager();
