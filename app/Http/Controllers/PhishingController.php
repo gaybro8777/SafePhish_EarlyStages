@@ -12,7 +12,6 @@ use app\TemplateConfiguration;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Illuminate\Http\Request;
 use App\User;
-use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 class PhishingController extends Controller {
 
@@ -146,10 +145,10 @@ class PhishingController extends Controller {
 		try {
 			$templateConfig = new TemplateConfiguration(
 				array(
-					'templateName'=>$request['emailTemplate'],
-					'companyName'=>$request['companyName'],
-					'projectName'=>$request['projectData']['projectName'],
-					'projectId'=>intval($request['projectData']['projectId'])
+					'templateName'=>$request->input('emailTemplate'),
+					'companyName'=>$request->input('companyName'),
+					'projectName'=>$request->input('projectData')['projectName'],
+					'projectId'=>intval($request->input('projectData')['projectId'])
 				)
 			);
 
@@ -157,12 +156,12 @@ class PhishingController extends Controller {
             $users = array();
 			$emailConfig = new EmailConfiguration(
 				array(
-					'host'=>$request['hostName'],
-					'port'=>$request['port'],
-					'authUsername'=>$request['username'],
-					'authPassword'=>$request['password'],
-					'fromEmail'=>$request['fromEmail'],
-					'subject'=>$request['subject'],
+					'host'=>$request->input('hostName'),
+					'port'=>$request->input('port'),
+					'authUsername'=>$request->input('username'),
+					'authPassword'=>$request->input('password'),
+					'fromEmail'=>$request->input('fromEmail'),
+					'subject'=>$request->input('subject'),
                     'users'=>$templateConfig->getValidUsers($users,$periodInWeeks)
 				)
 			);
@@ -362,7 +361,7 @@ class PhishingController extends Controller {
 		try {
 			$contents = \File::get($path);
 		}
-		catch (FileNotFoundException $fnfe) { //change to generic exception
+		catch (Exception $e) {
 		    //log exception
 			$contents = "Preview Unavailable";
 		}
@@ -380,10 +379,10 @@ class PhishingController extends Controller {
 			$db = new DBManager();
 
             //modify to use object access instead of array access
-			$username = $request['usernameText'];
-			$company = $request['companyText'];
-			$host = $request['mailServerText'];
-			$port = $request['mailPortText'];
+			$username = $request->input('usernameText');
+			$company = $request->input('companyText');
+			$host = $request->input('mailServerText');
+			$port = $request->input('mailPortText');
 			$userId = \Session::get('authUserId');
 
 			$settingsExist = $this->queryDefaultEmailSettings($userId);
@@ -466,8 +465,8 @@ class PhishingController extends Controller {
 	public function postLogin(Request $request) {
 		try {
 			$db = new DBManager();
-			$username = $request['usernameText'];
-			$password = $request['passwordText'];
+			$username = $request->input('usernameText');
+			$password = $request->input('passwordText');
 
 			$sql = "SELECT USR_Password,USR_UserId FROM gaig_users.users WHERE USR_Username=?;";
 			$bindings = array($username);
@@ -500,7 +499,7 @@ class PhishingController extends Controller {
         }
 	}
 
-	//disabled until add manager registration of users
+	//rewrite to have manager accounts who are authorized to create new users
     /**
      * postRegister
      * Registers a new user to the database and authenticates them.
@@ -510,10 +509,10 @@ class PhishingController extends Controller {
 	public function postRegister(Request $request) {
 		try {
 			$db = new DBManager();
-			$username = $request['usernameText'];
-			$password = $request['passwordText'];
-			$firstName = $request['firstNameText'];
-			$lastName = $request['lastNameText'];
+			$username = $request->input('usernameText');
+			$password = $request->input('passwordText');
+			$firstName = $request->input('firstNameText');
+			$lastName = $request->input('lastNameText');
 			$password = password_hash($password,PASSWORD_DEFAULT);
 			$sql = "INSERT INTO gaig_users.users (USR_UserId,USR_Username,USR_FirstName,USR_LastName,
 				USR_UniqueURLId,USR_Password,USR_ProjectMostRecent,USR_ProjectPrevious,USR_ProjectLast) VALUES
@@ -545,7 +544,7 @@ class PhishingController extends Controller {
         if($this->isUserAuth()) {
             try {
                 $db = new DBManager();
-                $passwordOld = $request['passwordOldText'];
+                $passwordOld = $request->input('passwordOldText');
                 $username = \Session::get('authUser');
 
                 $sql = "SELECT USR_Password,USR_UserId FROM gaig_users.users WHERE USR_Username=?;";
@@ -554,7 +553,7 @@ class PhishingController extends Controller {
 
                 if($result = $result->fetch(\PDO::FETCH_ASSOC)) {
                     if(password_verify($passwordOld,$result['USR_Password'])) {
-                        $passwordNew = password_hash($request['passwordNewText'],PASSWORD_DEFAULT);
+                        $passwordNew = password_hash($request->input('passwordNewText'),PASSWORD_DEFAULT);
 
                         $sql = "UPDATE gaig_users.users SET USR_Password=? WHERE USR_Username=?;";
                         $bindings = array($passwordNew,$username);
