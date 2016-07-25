@@ -378,7 +378,6 @@ class PhishingController extends Controller {
 		try {
 			$db = new DBManager();
 
-            //modify to use object access instead of array access
 			$username = $request->input('usernameText');
 			$company = $request->input('companyText');
 			$host = $request->input('mailServerText');
