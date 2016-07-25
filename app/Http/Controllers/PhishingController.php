@@ -458,9 +458,10 @@ class PhishingController extends Controller {
 
     /**
      * postLogin
-     * 
-     * @param Request $request
-     * @return $this
+     * Verifies the provided user exists and their password is accurate. Saves authenticated user to session variable.
+     *
+     * @param   Request         $request            Username and password
+     * @return  \Illuminate\Http\RedirectResponse|\Illuminate\View\View
      */
 	public function postLogin(Request $request) {
 		try {
@@ -500,6 +501,12 @@ class PhishingController extends Controller {
 	}
 
 	//disabled until add manager registration of users
+    /**
+     * postRegister
+     * Registers a new user to the database and authenticates them.
+     *
+     * @param   Request         $request            Username, password, and name
+     */
 	public function postRegister(Request $request) {
 		try {
 			$db = new DBManager();
@@ -528,6 +535,12 @@ class PhishingController extends Controller {
         }
 	}
 
+    /**
+     * changePassword - IN DEVELOPMENT PROGRESS
+     * Allows authenticated users to change their password. Requires re-entering password to verify user.
+     *
+     * @param   Request         $request            Password
+     */
 	public function changePassword(Request $request) {
         if($this->isUserAuth()) {
             try {
@@ -557,6 +570,12 @@ class PhishingController extends Controller {
         }
     }
 
+    /**
+     * logout
+     * Removes session variables identifying an authenticated user.
+     *
+     * @return  \Illuminate\Http\RedirectResponse
+     */
 	public function logout() {
 		\Session::forget('authUser');
 		\Session::forget('authUserId');
@@ -565,6 +584,12 @@ class PhishingController extends Controller {
 		return redirect()->to('http://localhost:8888');
 	}
 
+    /**
+     * postWebsiteJson
+     * Posts data queried from website_tracking table. Requires authenticated user to execute data retrieval.
+     *
+     * @return  array|\Illuminate\View\View
+     */
 	public function postWebsiteJson() {
 		if($this->isUserAuth()) {
 			try {
@@ -588,6 +613,12 @@ class PhishingController extends Controller {
 		return view('errors.401');
 	}
 
+    /**
+     * postEmailJson
+     * Posts data queried from email_tracking table. Requires authenticated user to execute data retrieval.
+     *
+     * @return  array|\Illuminate\View\View
+     */
 	public function postEmailJson() {
 		if($this->isUserAuth()) {
 			try {
@@ -610,6 +641,12 @@ class PhishingController extends Controller {
 		return view('errors.401');
 	}
 
+    /**
+     * postReportsJson
+     * Posts data queried from website_tracking table. Requires authenticated user to execute data retrieval.
+     *
+     * @return  array|\Illuminate\View\View
+     */
 	public function postReportsJson() {
 		if($this->isUserAuth()) {
 			try {
@@ -632,6 +669,12 @@ class PhishingController extends Controller {
 		return view('errors.401');
 	}
 
+    /**
+     * isUserAuth
+     * Helper function which checks if the authUserId session variable is set and if the authIp session variable equals the IP of the requester.
+     *
+     * @return  bool
+     */
 	private function isUserAuth() {
 		return \Session::get('authUserId') && \Session::get('authIp') == $_SERVER['REMOTE_ADDR'];
 	}
