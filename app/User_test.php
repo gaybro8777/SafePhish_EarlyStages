@@ -11,7 +11,8 @@ namespace app;
 
 use app\Libraries\RandomObjectGeneration;
 use Symfony\Component\Config\Definition\Exception\Exception;
-use MongoDB\BSON\Timestamp;
+use Doctrine\Instantiator\Exception\InvalidArgumentException;
+use Symfony\Component\Validator\Exception\OutOfBoundsException;
 
 class User_test
 {
@@ -35,16 +36,131 @@ class User_test
      */
     public function __construct($user)
     {
-        $this->id = $user['USR_UserId']; //required
-        $this->username = $user['USR_Username']; //required
-        $this->email = $user['USR_Email']; //required
-        $this->firstName = $user['USR_FirstName']; //required
-        $this->lastName = $user['USR_LastName']; //required
+        $this->validateSettingsKeys($user);
+        $this->validateSettingsValues($user);
+        $this->setVariables($user);
+    }
+
+    /**
+     * setVariables
+     * Sets the variables based on an associative array from a PDOStatement.
+     *
+     * @param   array       $user           Associative array of user data
+     */
+    private function setVariables($user) {
+        $this->id = $user['USR_UserId'];
+        $this->username = $user['USR_Username'];
+        $this->email = $user['USR_Email'];
+        $this->firstName = $user['USR_FirstName'];
+        $this->lastName = $user['USR_LastName'];
         $this->uniqueURLId = $user['USR_UniqueURLId'];
-        $this->password = $user['USR_Password']; //required
+        $this->password = $user['USR_Password'];
         $this->mostRecentProject = $user['USR_ProjectMostRecent'];
         $this->previousProject = $user['USR_ProjectPrevious'];
         $this->lastProject = $user['USR_ProjectLast'];
+    }
+
+    /**
+     * validateSettingsValues
+     * Checks the values of valid keys to make sure their values are valid.
+     *
+     * @param   array           $user               User associative array
+     * @throws  InvalidArgumentException
+     */
+    private function validateSettingsValues($user) {
+        $message = '';
+        if(!is_numeric($user['USR_UserId'])) {
+            $message .= 'USR_UserId is not a valid integer. Value provided: ' . var_export($user['USR_UserId'],true) . PHP_EOL;
+        }
+        if($this->alphanumericValidation($user['USR_Username'])) {
+            $message .= 'USR_Username is not a valid alphanumeric value. Value provided: ' . var_export($user['USR_Username']) . PHP_EOL;
+        }
+        if(!filter_var($user['USR_Email'],FILTER_VALIDATE_EMAIL)) {
+            $message .= 'USR_Email is not a valid email address. Value provided: ' . var_export($user['USR_Email'],true) . PHP_EOL;
+        }
+        if($this->alphabeticalValidation($user['USR_FirstName'])) {
+            $message .= 'USR_FirstName is not a valid alphabetical value. Value provided: ' . var_export($user['USR_FirstName'],true) . PHP_EOL;
+        }
+        if($this->alphabeticalValidation($user['USR_LastName'])) {
+            $message .= 'USR_LastName is not a valid alphabetical value. Value provided: ' . var_export($user['USR_LastName'],true) . PHP_EOL;
+        }
+        if(!is_null($user['USR_UniqueURLId'])) {
+            if($this->alphanumericValidation($user['USR_UniqueURLId'])) {
+                $message .= 'USR_UniqueURLId is not a valid alphanumeric value. Value provided: ' . var_export($user['USR_UniqueUrlId'],true) . PHP_EOL;
+            }
+        }
+        if(!is_null($user['USR_ProjectMostRecent'])) {
+            if($this->alphanumericValidation($user['USR_ProjectMostRecent'])) {
+                $message .= 'USR_ProjectMostRecent is not a valid alphanumeric value. Value provided: ' . var_export($user['USR_ProjectMostRecent']) . PHP_EOL;
+            }
+        }
+        if(!is_null($user['USR_ProjectPrevious'])) {
+            if($this->alphanumericValidation($user['USR_ProjectPrevious'])) {
+                $message .= 'USR_ProjectPrevious is not a valid alphanumeric value. Value provided: ' . var_export($user['USR_ProjectPrevious']) . PHP_EOL;
+            }
+        }
+        if(!is_null($user['USR_ProjectLast'])) {
+            if($this->alphanumericValidation($user['USR_ProjectLast'])) {
+                $message .= 'USR_ProjectLast is not a valid alphanumeric value. Value provided: ' . var_export($user['USR_ProjectLast']) . PHP_EOL;
+            }
+        }
+        if(!empty($message)) {
+            throw new InvalidArgumentException($message);
+        }
+    }
+
+    /**
+     * validateSettingsKeys
+     * Checks the keys of the user associative array to make sure that they have been set.
+     *
+     * @param   array           $user               User associative array
+     * @throws  InvalidArgumentException
+     */
+    private function validateSettingsKeys($user) {
+        $message = '';
+        if(is_null($user['USR_UserId'])) {
+            $message .= 'USR_UserId value cannot be null.' . PHP_EOL;
+        }
+        if(is_null($user['USR_Username'])) {
+            $message .= 'USR_Username value cannot be null.' . PHP_EOL;
+        }
+        if(is_null($user['USR_Email'])) {
+            $message .= 'USR_Email value cannot be null.' . PHP_EOL;
+        }
+        if(is_null($user['USR_FirstName'])) {
+            $message .= 'USR_FirstName value cannot be null.' . PHP_EOL;
+        }
+        if(is_null($user['USR_LastName'])) {
+            $message .= 'USR_LastName value cannot be null.' . PHP_EOL;
+        }
+        if(is_null($user['USR_Password'])) {
+            $message .= 'Subject value cannot be null.' . PHP_EOL;
+        }
+        if(!empty($message)) {
+            throw new OutOfBoundsException($message);
+        }
+    }
+
+    /**
+     * alphanumericValidation
+     * Regex validator to check for alphanumeric expression.
+     *
+     * @param   string          $string         String to check against regex pattern
+     * @return  int
+     */
+    private function alphanumericValidation($string) {
+        return preg_match('/[^a-z_\-0-9]/i',$string);
+    }
+
+    /**
+     * alphabeticalValidation
+     * Regex validator to check for alphabetical expression.
+     *
+     * @param   string          $string         String to check against regex pattern
+     * @return  int
+     */
+    private function alphabeticalValidation($string) {
+        return preg_match('/[^a-z\-]/i',$string);
     }
 
     /**
@@ -78,7 +194,7 @@ class User_test
                 $validUsers[] = $this;
             }
         } catch(Exception $e) {
-
+            //implementation to come
         }
     }
 
