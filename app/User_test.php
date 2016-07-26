@@ -11,6 +11,7 @@ namespace app;
 
 use app\Libraries\RandomObjectGeneration;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use MongoDB\BSON\Timestamp;
 
 class User_test
 {
@@ -62,6 +63,14 @@ class User_test
         }
     }
 
+    /**
+     * pushUser
+     * Pushes $this onto the provided array if it is valid.
+     *
+     * @param   array                   $validUsers             Array of User_test objects
+     * @param   int                     $periodInWeeks          Period to check in validation of user
+     * @param   TemplateConfiguration   $templateConfig         Template Configuration for validation
+     */
     public function pushUser($validUsers, $periodInWeeks, TemplateConfiguration $templateConfig) {
         try {
             $this->checkURLId($templateConfig->getProjectId());
@@ -73,6 +82,14 @@ class User_test
         }
     }
 
+    /**
+     * isValid
+     * Verifies the user is valid according to the verification algorithm defined in the check... functions.
+     *
+     * @param   int                     $periodInWeeks          Period to check in validation of user
+     * @param   TemplateConfiguration   $templateConfig         Template Configuration for validation
+     * @return  bool
+     */
     private function isValid($periodInWeeks, TemplateConfiguration $templateConfig) {
         try {
             $db = new DBManager();
@@ -109,25 +126,61 @@ class User_test
             }
             return true;
         } catch(Exception $e) {
-            throw new Exception();
+            //unsure how to manage any exceptions thrown yet, if at all. further design to come
         }
     }
 
+    /**
+     * checkPeriod - Verification Algorithm
+     * Verifies if the period is outside of periodInWeeks zone.
+     *
+     * @param   string          $date               Date in format 'Y-m-d h:i:s'
+     * @param   string          $timestamp          Date retrieved from PDOStatement
+     * @return  bool
+     */
     private function checkPeriod($date,$timestamp) {
         return $timestamp <= $date;
     }
 
+    /**
+     * checkMRP - Verification Algorithm
+     * Checks the Most Recent Project to see if identical.
+     *
+     * @param   Project         $mrp            Project object representing the Most Recent Project
+     * @param   string          $complexity     Complexity type of requested template
+     * @param   string          $target         Target type of requested template
+     * @return  bool
+     */
     private function checkMRP(Project $mrp, $complexity, $target) {
         return $complexity == $mrp->getTemplateComplexityType() &&
             $target == $mrp->getTemplateTargetType();
     }
 
+    /**
+     * checkPP - Verification Algorithm
+     * Checks the Previous Project and Most Recent Project for identical complexity type.
+     *
+     * @param   Project         $mrp            Project object representing the Most Recent Project
+     * @param   Project         $pp             Project object representing the Previous Project
+     * @param   string          $complexity     Complexity type of requested template
+     * @return  bool
+     */
     private function checkPP(Project $mrp, Project $pp, $complexity) {
         return !is_null($pp) &&
             $complexity == $mrp->getTemplateComplexityType() &&
             $complexity == $pp->getTemplateComplexityType();
     }
 
+    /**
+     * checkLP - Verification Algorithm
+     * Checks the Last Project, Previous Project, and Most Recent Project for identical target type.
+     *
+     * @param   Project         $mrp            Project object representing the Most Recent Project
+     * @param   Project         $pp             Project object representing the Previous Project
+     * @param   Project         $lp             Project object representing the Last Project
+     * @param   string          $target         Target type of requested template
+     * @return  bool
+     */
     private function checkLP(Project $mrp, Project $pp, Project $lp, $target) {
         return !is_null($lp) &&
             !is_null($pp) &&
