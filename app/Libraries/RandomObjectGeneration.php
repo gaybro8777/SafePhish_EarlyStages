@@ -19,6 +19,7 @@ class RandomObjectGeneration
      *
      * @param   int         $length         Length of string to be returned
      * @param   string      $keyspace       Allowed characters to be used in string
+     * @throws  Exception                   If length is null or is not a number
      * @return  string
      */
     public static function random_str($length, $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
