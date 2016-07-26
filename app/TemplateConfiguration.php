@@ -196,6 +196,14 @@ class TemplateConfiguration
         return $result['PRJ_ComplexityType'];
     }
 
+    /**
+     * getValidUsers
+     * Retrieves all users from the database and validates them through the User_test object.
+     *
+     * @param   array           $returnUsers            Array of User_test objects
+     * @param   int             $periodInWeeks          Period to check for instant sending of email
+     * @return  array
+     */
     public function getValidUsers($returnUsers, $periodInWeeks) {
         $db = new DBManager();
         $sql = "SELECT * FROM gaig_users.users;";
