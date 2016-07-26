@@ -22,7 +22,6 @@ class Email {
      *
      * @param   EmailConfiguration          $emailConfig            Email Configuration object containing required information to send an email
      * @param   TemplateConfiguration       $templateConfig         Template Configuration object containing required information to build a template
-     * @param   int                         $periodInWeeks          Number of weeks to check back for recipient validation
      * @throws  EmailException                                      Custom Exception to embody any exceptions thrown in this class
      */
     public static function executeEmail(
@@ -52,16 +51,19 @@ class Email {
         $db = new DBManager();
         $sql = "UPDATE gaig_users.users SET USR_ProjectMostRecent=?, USR_ProjectPrevious=?, 
                     USR_ProjectLast=? WHERE USR_Username=?;";
-        $bindings = array($this->templateConfig->getProjectName(),$user['USR_ProjectMostRecent'],$user['USR_ProjectPrevious'],$user['USR_Username']);
+        $bindings = array(self::$templateConfig->getProjectName(),
+            $user['USR_ProjectMostRecent'],
+            $user['USR_ProjectPrevious'],
+            $user['USR_Username']
+        );
         $db->query($sql,$bindings);
     }
 
     /**
      * sendEmail
-     * Iterates through the PDO Result Set of users. Calls validRecipientAlgo to validate user. Sends email if
-     *      valid and updates user if valid.
+     * Sends them an email to the specified user.
      *
-     * @param   array           $user           User array extracted from PDOStatement
+     * @param   User_test           $user           User object
      * @throws  FailureException
      */
     private static function sendEmail($user) {
@@ -69,13 +71,13 @@ class Email {
             'companyName'=>self::$templateConfig->getCompanyName(),
             'projectName'=>self::$templateConfig->getProjectName(),
             'projectId'=>self::$templateConfig->getProjectId(),
-            'lastName'=>$user['USR_LastName'],
-            'username'=>$user['USR_Username'],
-            'urlId'=>$user['USR_UniqueURLId']
+            'lastName'=>$user->getLastName(),
+            'username'=>$user->getUsername(),
+            'urlId'=>$user->getUniqueURLId()
         );
         $subject = self::$emailConfig->getSubject();
         $from = self::$emailConfig->getFromEmail();
-        $to = $user['USR_Email'];
+        $to = $user->getEmail();
         $mailResult = Mail::send(
             ['html' => self::$templateConfig->getTemplate()],
             $templateData,
