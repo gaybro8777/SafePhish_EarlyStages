@@ -135,4 +135,20 @@ class User_test
             $target == $pp->getTemplateTargetType() &&
             $target == $lp->getTemplateTargetType();
     }
+
+    public function getLastName() {
+        return $this->lastName;
+    }
+
+    public function getUsername() {
+        return $this->username;
+    }
+
+    public function getUniqueURLId() {
+        return $this->uniqueURLId;
+    }
+
+    public function getEmail() {
+        return $this->email;
+    }
 }
