@@ -17,9 +17,9 @@ class CreateEmailTrackingTable extends Migration {
 			$table->increments('EML_Id');
 			$table->string('EML_Ip');
 			$table->string('EML_Host');
-			$table->string('EML_Username');
-			$table->string('EML_ProjectName');
-			$table->dateTime('EML_AccessTimestamp');
+			$table->string('EML_UserId');
+			$table->string('EML_ProjectId');
+			$table->dateTime('EML_Timestamp');
 		});
 	}
 

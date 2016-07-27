@@ -14,11 +14,11 @@ class CreateReportsTable extends Migration {
 	{
 		Schema::create('reports', function(Blueprint $table)
 		{
-			$table->increments('RPT_ReportId');
+			$table->increments('RPT_Id');
 			$table->string('RPT_EmailSubject');
 			$table->string('RPT_UserEmail');
 			$table->string('RPT_OriginalFrom');
-			$table->date('RPT_ReportDate');
+			$table->date('RPT_CreateDate');
 		});
 	}
 

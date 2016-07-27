@@ -19,9 +19,9 @@ class CreateWebsiteTrackingTable extends Migration {
 			$table->string('WBS_Host');
 			$table->string('WBS_BrowserAgent');
 			$table->string('WBS_ReqPath');
-			$table->string('WBS_Username');
-			$table->string('WBS_ProjectName');
-			$table->dateTime('WBS_AccessTimestamp');
+			$table->string('WBS_UserId');
+			$table->string('WBS_ProjectId');
+			$table->dateTime('WBS_Timestamp');
 		});
 	}
 
