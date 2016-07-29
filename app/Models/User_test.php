@@ -6,7 +6,7 @@
  * Time: 2:34 PM
  */
 
-namespace app;
+namespace app\Models;
 
 
 use app\Libraries\RandomObjectGeneration;
