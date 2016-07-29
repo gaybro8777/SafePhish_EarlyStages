@@ -1,15 +1,14 @@
 <?php namespace App;
 
-use app\Exceptions\QueryException;
-use app\PDOIterator;
+use App\Exceptions\QueryException;
+use App\Models\Sent_Mail;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use PhpSpec\Exception\Example\FailureException;
-use Psy\Exception\FatalErrorException;
 use Symfony\Component\Config\Definition\Exception\Exception;
-use Symfony\Component\Validator\Exception\OutOfBoundsException;
-use app\EmailConfiguration;
-use app\TemplateConfiguration;
-use app\Exceptions\EmailException;
+use App\EmailConfiguration;
+use App\TemplateConfiguration;
+use App\Exceptions\EmailException;
 
 class Email {
 
@@ -34,7 +33,7 @@ class Email {
         try {
             foreach($emailConfig->getUsers() as $user) {
                 self::sendEmail($user);
-                self::updateUserProjects($user);
+                self::logSentEmail($user);
             }
         } catch(Exception $e) {
             throw new EmailException(__CLASS__ . ' Exception',0,$e);
@@ -42,21 +41,17 @@ class Email {
     }
 
     /**
-     * updateUserProjects
+     * logSentEmail
      * Updates the user with the newest project and rotates the old projects down one.
      *
-     * @param   array           $user           User array extracted from PDOStatement
+     * @param   array           $recipient           Mailing_List_User array
      */
-    private function updateUserProjects($user) {
-        $db = new DBManager();
-        $sql = "UPDATE gaig_users.users SET USR_ProjectMostRecent=?, USR_ProjectPrevious=?, 
-                    USR_ProjectLast=? WHERE USR_Username=?;";
-        $bindings = array(self::$templateConfig->getProjectName(),
-            $user['USR_ProjectMostRecent'],
-            $user['USR_ProjectPrevious'],
-            $user['USR_Username']
+    private static function logSentEmail($recipient) {
+        $sent_mail = Sent_Mail::create(
+            ['SML_UserId'=>$recipient['MGL_Id'],
+            'SML_ProjectId'=>self::$templateConfig->getProjectId(),
+            'SML_Timestamp'=>Carbon::now()]
         );
-        $db->query($sql,$bindings);
     }
 
     /**
@@ -71,20 +66,20 @@ class Email {
             'companyName'=>self::$templateConfig->getCompanyName(),
             'projectName'=>self::$templateConfig->getProjectName(),
             'projectId'=>self::$templateConfig->getProjectId(),
-            'lastName'=>$user->getLastName(),
-            'username'=>$user->getUsername(),
-            'urlId'=>$user->getUniqueURLId()
+            'lastName'=>$user['MGL_LastName'],
+            'username'=>$user['MGL_Username'],
+            'urlId'=>$user['MGL_UniqueURLId']
         );
         $subject = self::$emailConfig->getSubject();
         $from = self::$emailConfig->getFromEmail();
-        $to = $user->getEmail();
+        $to = $user['MGL_Email'];
         $mailResult = Mail::send(
-            ['html' => self::$templateConfig->getTemplate()],
+            ['html' => 'emails.phishing.' . self::$templateConfig->getTemplate()],
             $templateData,
             function($m) use ($from, $to, $subject) {
                 $m->from($from);
-                $m->to($to)
-                    ->subject($subject);
+                $m->to($to);
+                $m->subject($subject);
             }
         );
         if(!$mailResult) {
