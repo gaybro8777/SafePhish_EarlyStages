@@ -180,4 +180,14 @@ class DBManager {
 
         return $path;
     }
+
+    /**
+     * freeResult
+     * Closes the PDOStatement.
+     *
+     * @param   \PDOStatement       $result
+     */
+    public static function freeResult(\PDOStatement $result) {
+        $result->closeCursor();
+    }
 }
