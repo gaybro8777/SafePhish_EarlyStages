@@ -526,18 +526,17 @@ class PhishingController extends Controller {
      */
 	public function postLogin(Request $request) {
 		try {
-			$db = new DBManager();
 			$username = $request->input('usernameText');
 			$password = $request->input('passwordText');
 
-			$sql = "SELECT USR_Password,USR_Id FROM gaig_users.users WHERE USR_Username=?;";
-			$bindings = array($username);
-			$result = $db->query($sql,$bindings);
+            $user = User::where('USR_Username',$username)->first();
 
-			if($result = $result->fetch(\PDO::FETCH_ASSOC)) {
-				if(password_verify($password,$result['USR_Password'])) {
+			if(!is_null($user)) {
+                $user = json_decode($user,true);
+                $user = $user[0];
+				if(password_verify($password,$user['USR_Password'])) {
 					\Session::put('authUser',$username);
-					\Session::put('authUserId',$result['USR_Id']);
+					\Session::put('authUserId',$user['USR_Id']);
 					\Session::put('authIp',$_SERVER['REMOTE_ADDR']);
 
 					$redirectPage = \Session::get('loginRedirect');
@@ -556,7 +555,7 @@ class PhishingController extends Controller {
 				return view('auth.loginTest')->with($varToPass);
 			}
 		} catch(Exception $e) {
-            //caught exception already logged
+		    //log?
             //retry? otherwise redirect to user-friendly error view
         }
 	}
