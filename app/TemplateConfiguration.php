@@ -68,7 +68,7 @@ class TemplateConfiguration
             throw new OutOfBoundsException('Expected array, received ' . get_class($templateSettings) . ' Object');
         }
         $this->validateSettingsKeys($templateSettings);
-        $this->validateSettingsValues($templateSettings);
+        //$this->validateSettingsValues($templateSettings);
         $this->checkFileExist($templateSettings);
         $this->setSettings($templateSettings);
     }
@@ -133,8 +133,8 @@ class TemplateConfiguration
      * @return  mixed
      */
     private function validateRegex($value) {
-        return filter_var($value,FILTER_VALIDATE_REGEXP,
-            array('options'=>array('regexp'=>';(?:[a-zA-z0-9-])(?![/][\^]);')));
+        $pattern = ';(?:[a-zA-z0-9-])(?![/][\^]);';
+        return preg_match($value,$pattern);
     }
 
     /**
@@ -194,25 +194,5 @@ class TemplateConfiguration
         $data = $db->query($sql,$bindings);
         $result = $data->fetch();
         return $result['PRJ_ComplexityType'];
-    }
-
-    /**
-     * getValidUsers
-     * Retrieves all users from the database and validates them through the User_test object.
-     *
-     * @param   array           $returnUsers            Array of User_test objects
-     * @param   int             $periodInWeeks          Period to check for instant sending of email
-     * @return  array
-     */
-    public function getValidUsers($returnUsers, $periodInWeeks) {
-        $db = new DBManager();
-        $sql = "SELECT * FROM gaig_users.users;";
-        $users = $db->query($sql,array(),array('\PDO::ATTR_CURSOR'),array('\PDO::CURSOR_SCROLL'));
-        $usersIterator = new PDOIterator($users);
-        foreach($usersIterator as $user) {
-            $tempUser = new User_Test($user);
-            $tempUser->pushUser($returnUsers,$periodInWeeks,$this);
-        }
-        return $returnUsers;
     }
 }

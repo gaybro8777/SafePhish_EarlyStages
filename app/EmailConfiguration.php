@@ -65,7 +65,7 @@ class EmailConfiguration
         $message = '';
         if($this->isValidDomain($emailSettings['host'])) {
             if(!filter_var($emailSettings['port'],FILTER_VALIDATE_INT)) {
-                $message .= 'Port is not a valid integer. Value provided: ' . var_export(['port'],true) . PHP_EOL;
+                $message .= 'Port is not a valid integer. Value provided: ' . var_export($emailSettings['port'],true) . PHP_EOL;
             }
             if(!filter_var($emailSettings['fromEmail'],FILTER_VALIDATE_EMAIL)) {
                 $message .= 'From Email is not a valid email address. Value provided: ' . var_export($emailSettings['fromEmail'],true) . PHP_EOL;
