@@ -569,25 +569,28 @@ class PhishingController extends Controller {
      */
 	public function postRegister(Request $request) {
 		try {
-			$db = new DBManager();
 			$username = $request->input('usernameText');
 			$password = $request->input('passwordText');
 			$firstName = $request->input('firstNameText');
 			$lastName = $request->input('lastNameText');
+            $middleInitial = $request->input('initialText');
+            $email = $request->input('emailText');
 			$password = password_hash($password,PASSWORD_DEFAULT);
-			$sql = "INSERT INTO gaig_users.users (USR_Id,USR_Username,USR_Email,USR_FirstName,USR_LastName,
-				USR_MiddleInitial,USR_UniqueURLId,USR_Password) VALUES
-				(null,?,?,?,?,?,null,?);";
-			$bindings = array($username,'tthrockmorton@gaig.com',$firstName,$lastName,'M',$password);
-			$db->query($sql,$bindings);
 
-			$sql = "SELECT USR_Id FROM gaig_users.users WHERE USR_Username=?;";
-			$bindings = array($username);
-			$result = $db->query($sql,$bindings);
-			$result = $result->fetch(\PDO::FETCH_ASSOC);
+            $user = User::create(
+                ['USR_Username'=>$username,
+                    'USR_Email'=>$email,
+                    'USR_FirstName'=>$firstName,
+                    'USR_LastName'=>$lastName,
+                    'USR_MiddleInitial'=>$middleInitial,
+                    'USR_Password'=>$password]
+            );
+
+            $user = json_decode($user,true);
+            $user = $user[0];
 
 			\Session::put('authUser',$username);
-			\Session::put('authUserId',$result['USR_Id']);
+			\Session::put('authUserId',$user['USR_Id']);
 			\Session::put('authIp',$_SERVER['REMOTE_ADDR']);
 		} catch(Exception $e) {
             //caught exception already logged
