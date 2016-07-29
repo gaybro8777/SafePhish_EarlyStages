@@ -20,7 +20,6 @@ class CreateUsersTable extends Migration {
 			$table->string('USR_FirstName');
 			$table->string('USR_LastName');
             $table->string('USR_MiddleInitial')->nullable();
-			$table->string('USR_UniqueURLId')->nullable();
 			$table->string('USR_Password',255);
 		});
 	}

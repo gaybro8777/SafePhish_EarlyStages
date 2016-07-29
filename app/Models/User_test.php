@@ -22,11 +22,7 @@ class User_test
     private $email;
     private $firstName;
     private $lastName;
-    private $uniqueURLId;
     private $password;
-    private $mostRecentProject;
-    private $previousProject;
-    private $lastProject;
 
     private $date;
 
@@ -48,16 +44,12 @@ class User_test
      * @param   array       $user           Associative array of user data
      */
     private function setVariables($user) {
-        $this->id = $user['USR_UserId'];
+        $this->id = $user['USR_Id'];
         $this->username = $user['USR_Username'];
         $this->email = $user['USR_Email'];
         $this->firstName = $user['USR_FirstName'];
         $this->lastName = $user['USR_LastName'];
-        $this->uniqueURLId = $user['USR_UniqueURLId'];
         $this->password = $user['USR_Password'];
-        $this->mostRecentProject = $user['USR_ProjectMostRecent'];
-        $this->previousProject = $user['USR_ProjectPrevious'];
-        $this->lastProject = $user['USR_ProjectLast'];
     }
 
     /**
@@ -87,21 +79,6 @@ class User_test
         if(!is_null($user['USR_UniqueURLId'])) {
             if($this->alphanumericValidation($user['USR_UniqueURLId'])) {
                 $message .= 'USR_UniqueURLId is not a valid alphanumeric value. Value provided: ' . var_export($user['USR_UniqueUrlId'],true) . PHP_EOL;
-            }
-        }
-        if(!is_null($user['USR_ProjectMostRecent'])) {
-            if($this->alphanumericValidation($user['USR_ProjectMostRecent'])) {
-                $message .= 'USR_ProjectMostRecent is not a valid alphanumeric value. Value provided: ' . var_export($user['USR_ProjectMostRecent']) . PHP_EOL;
-            }
-        }
-        if(!is_null($user['USR_ProjectPrevious'])) {
-            if($this->alphanumericValidation($user['USR_ProjectPrevious'])) {
-                $message .= 'USR_ProjectPrevious is not a valid alphanumeric value. Value provided: ' . var_export($user['USR_ProjectPrevious']) . PHP_EOL;
-            }
-        }
-        if(!is_null($user['USR_ProjectLast'])) {
-            if($this->alphanumericValidation($user['USR_ProjectLast'])) {
-                $message .= 'USR_ProjectLast is not a valid alphanumeric value. Value provided: ' . var_export($user['USR_ProjectLast']) . PHP_EOL;
             }
         }
         if(!empty($message)) {
@@ -311,10 +288,6 @@ class User_test
 
     public function getUsername() {
         return $this->username;
-    }
-
-    public function getUniqueURLId() {
-        return $this->uniqueURLId;
     }
 
     public function getEmail() {

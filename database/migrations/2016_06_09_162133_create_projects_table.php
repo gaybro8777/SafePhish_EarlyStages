@@ -20,9 +20,8 @@ class CreateProjectsTable extends Migration {
             $table->string('PRJ_ComplexityType');
             $table->string('PRJ_TargetType');
 			$table->string('PRJ_Assignee');
-			$table->date('PRJ_Start');
-			$table->date('PRJ_LastActive');
 			$table->string('PRJ_Status');
+            $table->timestamps();
 		});
 	}
 

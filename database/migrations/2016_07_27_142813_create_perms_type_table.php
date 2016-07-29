@@ -15,7 +15,6 @@ class CreatePermsTypeTable extends Migration {
 		Schema::create('permission_types', function(Blueprint $table)
 		{
 			$table->increments('PMT_Id');
-            $table->primary('PMT_Id');
             $table->string('PMT_Type');
             $table->string('PMT_Description')->nullable();
 		});

@@ -16,7 +16,7 @@ class CreateSentEmailTable extends Migration {
 		{
 			$table->increments('SML_Id');
 			$table->integer('SML_UserId');
-			$table->string('SML_ProjectName');
+			$table->string('SML_ProjectId');
 			$table->dateTime('SML_Timestamp');
 		});
 	}
