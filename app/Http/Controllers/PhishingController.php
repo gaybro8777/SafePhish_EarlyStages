@@ -2,13 +2,16 @@
 
 use App\DBManager;
 use App\Email as Email;
-use app\EmailConfiguration;
-use app\Exceptions\ConfigurationException;
-use app\Exceptions\EmailException;
+use App\EmailConfiguration;
+use App\Exceptions\ConfigurationException;
+use App\Exceptions\EmailException;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Models\Mailing_List_User;
+use App\Models\Sent_Mail;
 use App\PDOIterator;
-use app\TemplateConfiguration;
+use App\Models\Project;
+use App\TemplateConfiguration;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Illuminate\Http\Request;
 use App\User;
@@ -135,6 +138,67 @@ class PhishingController extends Controller {
 		//
 	}
 
+    /**
+     * retrieveProjects
+     * Helper function to grab the 3 most recent projects for a user, then grab the project object of each project.
+     *
+     * @param   int             $id         Mailing_list ID of the requested user.
+     * @return  array
+     */
+	private static function retrieveProjects($id) {
+        $result = Sent_Mail::where('SML_UserId',$id)
+            ->limit(3)
+            ->get();
+        $result = json_decode($result,true);
+        $projects = array();
+        for($i = 0; $i < sizeof($result); $i++) {
+            $project = Project::where('PRJ_Id',$result[$i]['SML_ProjectId'])->get();
+            $projects[] = json_decode($project,true);
+        }
+        return $projects;
+    }
+
+    /**
+     * validateMailingList
+     * Validates all the mailing_list recipients. Returns only those that will receive the email.
+     *
+     * @param   array           $currentProject         The current project being validated against.
+     * @param   int             $periodInWeeks          Number of weeks back to check for most recent email.
+     * @return  array
+     */
+    private static function validateMailingList($currentProject, $periodInWeeks) {
+        $users = Mailing_List_User::all();
+        $users = json_decode($users,true);
+        $mailingList = array();
+        for($i = 0; $i < sizeof($users); $i++) {
+            $date = date('Y-m-d h:i:s',strtotime("-$periodInWeeks weeks"));
+            $projects = self::retrieveProjects($users[$i]['MGL_Id']);
+            if($projects[0][0]['updated_at'] <= $date) {
+                $mailingList[] = $users[$i];
+            }
+            $complexity = $currentProject[0]['PRJ_ComplexityType'];
+            $target = $currentProject[0]['PRJ_TargetType'];
+            if((!is_null($projects[0]) &&
+                    $complexity == $projects[0][0]['PRJ_ComplexityType'] &&
+                    $target == $projects[0][0]['PRJ_TargetType'])
+                ||
+                    (!is_null($projects[0][0]) && !is_null($projects[1][0]) &&
+                        $complexity == $projects[0][0]['PRJ_ComplexityType'] &&
+                        $complexity == $projects[1][0]['PRJ_ComplexityType'])
+                ||
+                    (!is_null($projects[0][0]) && !is_null($projects[1][0]) && !is_null($projects[2][0]) &&
+                        $target == $projects[0][0]['PRJ_TargetType'] &&
+                        $target == $projects[1][0]['PRJ_TargetType'] &&
+                        $target == $projects[2][0]['PRJ_TargetType'])) {
+                //invalid recipient - something may happen here
+            }
+            else {
+                $mailingList[] = $users[$i];
+            }
+        }
+        return $mailingList;
+    }
+
 	/**
 	 * sendEmail
 	 * Function mapped to Laravel route. Defines variable arrays and calls Email Class executeEmail.
@@ -146,23 +210,22 @@ class PhishingController extends Controller {
 			$templateConfig = new TemplateConfiguration(
 				array(
 					'templateName'=>$request->input('emailTemplate'),
-					'companyName'=>$request->input('companyName'),
+					'companyName'=>$request->input('companyText'),
 					'projectName'=>$request->input('projectData')['projectName'],
 					'projectId'=>intval($request->input('projectData')['projectId'])
 				)
 			);
-
+            $currentProject = json_decode(Project::where('PRJ_Id',$templateConfig->getProjectId())->get(),true);
             $periodInWeeks = 4;
-            $users = array();
 			$emailConfig = new EmailConfiguration(
 				array(
-					'host'=>$request->input('hostName'),
-					'port'=>$request->input('port'),
-					'authUsername'=>$request->input('username'),
-					'authPassword'=>$request->input('password'),
-					'fromEmail'=>$request->input('fromEmail'),
+					'host'=>$request->input('mailServerText'),
+					'port'=>$request->input('mailPortText'),
+					'authUsername'=>$request->input('fromEmailText'),
+					'authPassword'=>'gaig_user',
+					'fromEmail'=>$request->input('fromEmailText'),
 					'subject'=>$request->input('subject'),
-                    'users'=>$templateConfig->getValidUsers($users,$periodInWeeks)
+                    'users'=>self::validateMailingList($currentProject,$periodInWeeks)
 				)
 			);
 
@@ -238,7 +301,7 @@ class PhishingController extends Controller {
 	private function returnAllProjects() {
 		try {
 			$db = new DBManager();
-			$sql = "SELECT PRJ_ProjectId, PRJ_ProjectName, PRJ_ProjectStatus FROM gaig_users.projects;";
+			$sql = "SELECT PRJ_Id, PRJ_Name, PRJ_Status FROM gaig_users.projects;";
 			$bindings = array();
 			$projects = $db->query($sql,$bindings);
 			$projectIterator = new PDOIterator($projects);
@@ -246,9 +309,9 @@ class PhishingController extends Controller {
 			$projectSize = 0;
 			foreach($projectIterator as $project) {
 				$data[] = array(
-				    'PRJ_ProjectId'=>$project['PRJ_ProjectId'],
-                    'PRJ_ProjectName'=>$project['PRJ_ProjectName'],
-                    'PRJ_ProjectStatus'=>$project['PRJ_ProjectStatus']);
+				    'PRJ_ProjectId'=>$project['PRJ_Id'],
+                    'PRJ_ProjectName'=>$project['PRJ_Name'],
+                    'PRJ_ProjectStatus'=>$project['PRJ_Status']);
 				$projectSize++;
 			}
 			return array($projectSize,$data);
@@ -467,14 +530,14 @@ class PhishingController extends Controller {
 			$username = $request->input('usernameText');
 			$password = $request->input('passwordText');
 
-			$sql = "SELECT USR_Password,USR_UserId FROM gaig_users.users WHERE USR_Username=?;";
+			$sql = "SELECT USR_Password,USR_Id FROM gaig_users.users WHERE USR_Username=?;";
 			$bindings = array($username);
 			$result = $db->query($sql,$bindings);
 
 			if($result = $result->fetch(\PDO::FETCH_ASSOC)) {
 				if(password_verify($password,$result['USR_Password'])) {
 					\Session::put('authUser',$username);
-					\Session::put('authUserId',$result['USR_UserId']);
+					\Session::put('authUserId',$result['USR_Id']);
 					\Session::put('authIp',$_SERVER['REMOTE_ADDR']);
 
 					$redirectPage = \Session::get('loginRedirect');
@@ -513,19 +576,19 @@ class PhishingController extends Controller {
 			$firstName = $request->input('firstNameText');
 			$lastName = $request->input('lastNameText');
 			$password = password_hash($password,PASSWORD_DEFAULT);
-			$sql = "INSERT INTO gaig_users.users (USR_UserId,USR_Username,USR_FirstName,USR_LastName,
-				USR_UniqueURLId,USR_Password,USR_ProjectMostRecent,USR_ProjectPrevious,USR_ProjectLast) VALUES
-				(null,?,?,?,null,?,null,null,null);";
-			$bindings = array($username,$firstName,$lastName,$password);
+			$sql = "INSERT INTO gaig_users.users (USR_Id,USR_Username,USR_Email,USR_FirstName,USR_LastName,
+				USR_MiddleInitial,USR_UniqueURLId,USR_Password) VALUES
+				(null,?,?,?,?,?,null,?);";
+			$bindings = array($username,'tthrockmorton@gaig.com',$firstName,$lastName,'M',$password);
 			$db->query($sql,$bindings);
 
-			$sql = "SELECT USR_UserId FROM gaig_users.users WHERE USR_Username=?;";
+			$sql = "SELECT USR_Id FROM gaig_users.users WHERE USR_Username=?;";
 			$bindings = array($username);
 			$result = $db->query($sql,$bindings);
 			$result = $result->fetch(\PDO::FETCH_ASSOC);
 
 			\Session::put('authUser',$username);
-			\Session::put('authUserId',$result['USR_UserId']);
+			\Session::put('authUserId',$result['USR_Id']);
 			\Session::put('authIp',$_SERVER['REMOTE_ADDR']);
 		} catch(Exception $e) {
             //caught exception already logged
